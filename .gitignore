@@ -1,0 +1,10 @@
+.env*
+!.env.sample
+
+**/*.dbdiagram
+
+**/node_modules/
+**/dist/
+**/.turbo/
+**/.tanstack/
+**/routeTree.gen.ts
