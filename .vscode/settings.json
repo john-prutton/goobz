@@ -1,7 +1,7 @@
 {
 	"prettier.configPath": "prettier.config.mjs",
 	"files.exclude": {
-		// "**/node_modules/": true,
+		"**/node_modules/": true,
 		"**/.turbo/": true,
 		"**/.tanstack/": true,
 		"**/routeTree.gen.ts": true
@@ -17,5 +17,6 @@
 	},
 	"editor.tabSize": 2,
 	"js/ts.tsdk.path": "./node_modules/typescript/lib",
-	"js/ts.tsdk.promptToUseWorkspaceVersion": true
+	"js/ts.tsdk.promptToUseWorkspaceVersion": true,
+	"cSpell.words": ["Goob", "Goobs", "goobz"]
 }
