@@ -8,11 +8,22 @@ export default Layer.effect(
 	Player,
 	Effect.gen(function* () {
 		const gameState = yield* GameState
+
 		return {
 			tick: Effect.gen(function* () {
-				const tick = yield* gameState.tick.get
+				const goobs = yield* gameState.map.getAllGoobs
+				yield* Effect.log("goobs", goobs.length)
 
-				yield* Effect.log(`[TestPlayer] tick: ${tick}`)
+				for (const goob of goobs) {
+					yield* Effect.log(goob.data.position)
+					yield* goob
+						.move()
+						.pipe(
+							Effect.catchTag("MoveError", () =>
+								Effect.log(`failed to move goob ${goob.data.id}`),
+							),
+						)
+				}
 			}),
 		}
 	}),

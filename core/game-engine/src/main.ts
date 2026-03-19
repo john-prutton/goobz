@@ -11,11 +11,13 @@ export const RunGame = ({ playerNames }: { playerNames: string[] }) =>
 		const gameState = yield* GameState
 		const players = yield* LoadPlayers(playerNames)
 
-		yield* Effect.log("Starting game")
 		yield* Effect.gen(function* () {
+			yield* Effect.log(`[SERVER] tick ${yield* gameState.tick.get}`)
+
 			for (const player of players) {
 				yield* player.tick
 			}
+
 			yield* gameState.tick.next
 		}).pipe(
 			Effect.repeat({
