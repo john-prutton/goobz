@@ -18,5 +18,8 @@
 	"editor.tabSize": 2,
 	"js/ts.tsdk.path": "./node_modules/typescript/lib",
 	"js/ts.tsdk.promptToUseWorkspaceVersion": true,
-	"cSpell.words": ["Goob", "Goobs", "goobz"]
+	"cSpell.words": ["Goob", "Goobs", "goobz"],
+	"editor.codeActionsOnSave": {
+		"source.organizeImports": "always"
+	}
 }
