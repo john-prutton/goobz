@@ -4,10 +4,10 @@ import * as Ref from "effect/Ref"
 import * as Schema from "effect/Schema"
 import * as ServiceMap from "effect/ServiceMap"
 
-import { Goob, type GoobClass } from "@/entities/goob.js"
 import { Bounds } from "@/schema/bounds.js"
 import { EntityId } from "@/schema/entity-id.js"
 import { GoobData } from "@/schema/goob-data.js"
+import { PlayerId } from "@/schema/player-id.js"
 import { Position } from "@/schema/position.js"
 
 export class GameState extends ServiceMap.Service<
@@ -20,7 +20,7 @@ export class GameState extends ServiceMap.Service<
 
 		readonly map: {
 			readonly bounds: Bounds
-			readonly getAllGoobs: Effect.Effect<GoobClass[]>
+			readonly getGoobs: Effect.Effect<GoobData[]>
 		}
 
 		readonly _: {
@@ -38,17 +38,21 @@ export const GameStateLive = Layer.effect(
 		const goobs = yield* Ref.make<Map<GoobData["id"], GoobData>>(new Map())
 		const bounds = yield* Bounds.make(10, 10)
 
-		const goob = yield* Schema.decodeEffect(GoobData)({
-			id: EntityId.makeUnsafe(0),
-			position: new Position({ x: 0, y: 0 }),
-		})
-		goobs.ref.current.set(goob.id, goob)
+		{
+			const goob = yield* Schema.decodeEffect(GoobData)({
+				id: EntityId.makeUnsafe(0),
+				owner: PlayerId.makeUnsafe("test-player"),
+				position: new Position({ x: 0, y: 0 }),
+			})
+			goobs.ref.current.set(goob.id, goob)
 
-		const goob2 = yield* Schema.decodeEffect(GoobData)({
-			id: EntityId.makeUnsafe(1),
-			position: new Position({ x: 4, y: 0 }),
-		})
-		goobs.ref.current.set(goob2.id, goob2)
+			const goob2 = yield* Schema.decodeEffect(GoobData)({
+				id: EntityId.makeUnsafe(1),
+				owner: "player-2",
+				position: new Position({ x: 4, y: 0 }),
+			})
+			goobs.ref.current.set(goob2.id, goob2)
+		}
 
 		return {
 			tick: {
@@ -58,10 +62,9 @@ export const GameStateLive = Layer.effect(
 
 			map: {
 				bounds,
-				getAllGoobs: Effect.gen(function* () {
-					const _goobs = yield* Ref.get(goobs)
-					return yield* Effect.all(_goobs.values().map((data) => Goob(data)))
-				}),
+				getGoobs: Ref.get(goobs).pipe(
+					Effect.map((goobs) => goobs.values().toArray()),
+				),
 			},
 
 			_: {

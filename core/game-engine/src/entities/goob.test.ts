@@ -7,18 +7,33 @@ import * as Schema from "effect/Schema"
 import { Bounds } from "@/schema/bounds.js"
 import { EntityId } from "@/schema/entity-id.js"
 import { GoobData } from "@/schema/goob-data.js"
+import { PlayerId } from "@/schema/player-id.js"
 import { Position } from "@/schema/position.js"
 import { GameState } from "@/services/game-state.js"
+import { PlayerData } from "@/services/player.js"
 
 import { Goob } from "./goob.js"
 
-const makeTestGoobData = (id: number, x: number, y: number) =>
+const makeTestGoobData = (
+	id: number,
+	x: number,
+	y: number,
+	owner = "test-player",
+) =>
 	Schema.decodeEffect(GoobData)({
 		id: EntityId.makeUnsafe(id),
+		owner: PlayerId.makeUnsafe(owner),
 		position: new Position({ x, y }),
 	})
 
-const makeTestLayer = (goobDataList: GoobData[], width = 10, height = 10) =>
+const makePlayerLayer = (owner = "test-player") =>
+	Layer.succeed(PlayerData, PlayerData.of({ id: PlayerId.makeUnsafe(owner) }))
+
+const makeGameStateLayer = (
+	goobDataList: GoobData[],
+	width = 10,
+	height = 10,
+) =>
 	Layer.effect(
 		GameState,
 		Effect.gen(function* () {
@@ -36,10 +51,9 @@ const makeTestLayer = (goobDataList: GoobData[], width = 10, height = 10) =>
 				},
 				map: {
 					bounds,
-					getAllGoobs: Effect.gen(function* () {
-						const _goobs = yield* Ref.get(goobs)
-						return yield* Effect.all(_goobs.values().map((data) => Goob(data)))
-					}),
+					getGoobs: Ref.get(goobs).pipe(
+						Effect.map((goobs) => goobs.values().toArray()),
+					),
 				},
 				_: {
 					entities: {
@@ -50,12 +64,23 @@ const makeTestLayer = (goobDataList: GoobData[], width = 10, height = 10) =>
 		}),
 	)
 
+const makeTestLayer = (
+	goobDataList: GoobData[],
+	width = 10,
+	height = 10,
+	owner = "test-player",
+) =>
+	Layer.merge(
+		makeGameStateLayer(goobDataList, width, height),
+		makePlayerLayer(owner),
+	).pipe(Layer.build)
+
 describe("Goob", () => {
 	it.effect(
 		"should move to an adjacent position",
 		Effect.fn(function* () {
 			const data = yield* makeTestGoobData(0, 2, 2)
-			const layer = makeTestLayer([data])
+			const layer = yield* makeTestLayer([data])
 
 			const goob = yield* Goob(data).pipe(Effect.provide(layer))
 			const result = yield* goob
@@ -71,7 +96,7 @@ describe("Goob", () => {
 		"should fail when moving to the same position",
 		Effect.fn(function* () {
 			const data = yield* makeTestGoobData(0, 2, 2)
-			const layer = makeTestLayer([data])
+			const layer = yield* makeTestLayer([data])
 
 			const goob = yield* Goob(data).pipe(Effect.provide(layer))
 			const result = yield* goob
@@ -85,9 +110,9 @@ describe("Goob", () => {
 	it.effect(
 		"should fail when position is occupied by another goob",
 		Effect.fn(function* () {
-			const data1 = yield* makeTestGoobData(0, 2, 2)
-			const data2 = yield* makeTestGoobData(1, 3, 2)
-			const layer = makeTestLayer([data1, data2])
+			const data1 = yield* makeTestGoobData(0, 2, 2, "player-1")
+			const data2 = yield* makeTestGoobData(1, 3, 2, "player-2")
+			const layer = yield* makeTestLayer([data1, data2], 10, 10, "player-1")
 
 			const goob = yield* Goob(data1).pipe(Effect.provide(layer))
 			const result = yield* goob
@@ -99,10 +124,26 @@ describe("Goob", () => {
 	)
 
 	it.effect(
+		"should fail when player is not the owner",
+		Effect.fn(function* () {
+			const data = yield* makeTestGoobData(0, 2, 2, "player-1")
+			const layer = yield* makeTestLayer([data], 10, 10, "player-2")
+
+			const pos = new Position({ x: 3, y: 2 })
+			const goob = yield* Goob(data).pipe(Effect.provide(layer))
+			const result = yield* goob
+				.moveTo(pos)
+				.pipe(Effect.provide(layer), Effect.exit)
+
+			expect(yield* Effect.isFailure(result)).toBe(true)
+		}),
+	)
+
+	it.effect(
 		"should fail when moving out of bounds",
 		Effect.fn(function* () {
 			const data = yield* makeTestGoobData(0, 0, 0)
-			const layer = makeTestLayer([data], 5, 5)
+			const layer = yield* makeTestLayer([data], 5, 5)
 
 			const goob = yield* Goob(data).pipe(Effect.provide(layer))
 			const result = yield* goob
@@ -117,7 +158,7 @@ describe("Goob", () => {
 		"should fail when moving out of range",
 		Effect.fn(function* () {
 			const data = yield* makeTestGoobData(0, 0, 0)
-			const layer = makeTestLayer([data])
+			const layer = yield* makeTestLayer([data])
 
 			const goob = yield* Goob(data).pipe(Effect.provide(layer))
 			const result = yield* goob
@@ -132,7 +173,7 @@ describe("Goob", () => {
 		"should accumulate move distance across multiple moves",
 		Effect.fn(function* () {
 			const data = yield* makeTestGoobData(0, 0, 0)
-			const layer = makeTestLayer([data])
+			const layer = yield* makeTestLayer([data])
 
 			const goob = yield* Goob(data).pipe(Effect.provide(layer))
 
@@ -154,7 +195,7 @@ describe("Goob", () => {
 		"should fail when moving beyond map boundary at edge",
 		Effect.fn(function* () {
 			const data = yield* makeTestGoobData(0, 4, 4)
-			const layer = makeTestLayer([data], 5, 5)
+			const layer = yield* makeTestLayer([data], 5, 5)
 
 			const goob = yield* Goob(data).pipe(Effect.provide(layer))
 			const result = yield* goob
@@ -166,15 +207,16 @@ describe("Goob", () => {
 	)
 
 	it.effect(
-		"should expose readonly data",
+		"should expose readonly data including owner",
 		Effect.fn(function* () {
-			const data = yield* makeTestGoobData(0, 3, 4)
-			const layer = makeTestLayer([data])
+			const data = yield* makeTestGoobData(0, 3, 4, "player-1")
+			const layer = yield* makeTestLayer([data], 10, 10, "player-1")
 
 			const goob = yield* Goob(data).pipe(Effect.provide(layer))
 
 			expect(goob.data.position.equals(new Position({ x: 3, y: 4 }))).toBe(true)
 			expect(goob.data.id).toBe(EntityId.makeUnsafe(0))
+			expect(goob.data.owner).toBe(PlayerId.makeUnsafe("player-1"))
 		}),
 	)
 })

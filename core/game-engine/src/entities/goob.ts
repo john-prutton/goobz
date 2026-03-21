@@ -4,6 +4,7 @@ import * as Schema from "effect/Schema"
 import { GoobData } from "@/schema/goob-data.js"
 import { Position } from "@/schema/position.js"
 import { GameState } from "@/services/game-state.js"
+import { PlayerData } from "@/services/player.js"
 
 class MoveError extends Schema.TaggedErrorClass<MoveError>()("MoveError", {
 	type: Schema.Literals([
@@ -12,6 +13,7 @@ class MoveError extends Schema.TaggedErrorClass<MoveError>()("MoveError", {
 		"Out of range",
 		"Position occupied",
 		"Already at position",
+		"Not owner",
 	]),
 }) {}
 
@@ -20,21 +22,25 @@ export type GoobClass = {
 	readonly moveTo: (
 		pos: Position,
 		options?: { linear?: true },
-	) => Effect.Effect<true, MoveError, GameState>
+	) => Effect.Effect<true, MoveError>
 }
 
 export const Goob = (data: GoobData) =>
 	Effect.gen(function* () {
 		let moveDistance = 0
+		const { id } = yield* PlayerData
+		const gameState = yield* GameState
 
 		return {
 			data,
 
 			moveTo: Effect.fn(function* (pos) {
+				if (data.owner !== id)
+					return yield* new MoveError({ type: "Not owner" })
+
 				if (data.position.equals(pos))
 					return yield* new MoveError({ type: "Already at position" })
 
-				const gameState = yield* GameState
 				const goobs = yield* gameState._.entities.goobs
 
 				if (!!goobs.values().find((goob) => goob.position.equals(pos)))

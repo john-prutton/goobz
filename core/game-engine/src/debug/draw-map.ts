@@ -7,10 +7,10 @@ export const DrawMap = Effect.gen(function* () {
 	const gameState = yield* GameState
 
 	const { height, width } = gameState.map.bounds
-	const goobs = new Set(
+	const goobs = new Map(
 		(yield* gameState._.entities.goobs)
 			.values()
-			.map((goob) => goob.position.toString()),
+			.map((goob) => [goob.position.toString(), goob]),
 	)
 
 	const board: string[] = ["\n"]
@@ -19,7 +19,8 @@ export const DrawMap = Effect.gen(function* () {
 		const row: string[] = []
 		for (let x = 0; x < height; x++) {
 			const pos = new Position({ x, y })
-			row.push(goobs.has(pos.toString()) ? "x" : "_")
+			const cell = goobs.get(pos.toString())
+			row.push(!!cell ? cell.owner.at(0)! : "_")
 		}
 
 		board.push(`|${row.join("|")}|`)

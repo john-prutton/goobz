@@ -1,10 +1,10 @@
 import * as Schema from "effect/Schema"
 
-import { EntityId } from "./entity-id.js"
-import { Position } from "./position.js"
+import { BaseEntityData } from "./base-entity-data.js"
+import { PlayerId } from "./player-id.js"
 
 export type GoobData = typeof GoobData.Type
 export const GoobData = Schema.Struct({
-	id: EntityId,
-	position: Schema.mutableKey(Position),
+	...BaseEntityData.fields,
+	owner: PlayerId,
 })
