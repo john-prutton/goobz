@@ -16,7 +16,7 @@ export const DrawMap = Effect.gen(function* () {
 
 	const board: string[] = ["\n"]
 
-	for (let y = 0; y < width; y++) {
+	for (let y = width - 1; y >= 0; y--) {
 		const row: string[] = []
 		for (let x = 0; x < height; x++) {
 			const pos = new Position({ x, y })
