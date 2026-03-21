@@ -10,6 +10,15 @@ export class Position extends Schema.Class<Position>("Position")({
 		return yield* Schema.decodeEffect(Position)({ x, y })
 	})
 
+	public static UP = new Position({ x: 0, y: 1 })
+	public static DOWN = new Position({ x: 0, y: -1 })
+	public static LEFT = new Position({ x: -1, y: 0 })
+	public static RIGHT = new Position({ x: 1, y: 0 })
+
+	public clone() {
+		return new Position({ x: this.x, y: this.y })
+	}
+
 	public toString() {
 		return `<${this.x},${this.y}>`
 	}
@@ -52,5 +61,9 @@ export class Position extends Schema.Class<Position>("Position")({
 
 	public towards(target: Position, range: number = 1) {
 		return this.plus(target.minus(this).scale(range))
+	}
+
+	public distanceTo(other: Position) {
+		return other.minus(this).length()
 	}
 }

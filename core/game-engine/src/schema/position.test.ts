@@ -74,7 +74,7 @@ describe("Position", () => {
 		}),
 	)
 
-	it(
+	it.effect(
 		"should reject non-integer x",
 		Effect.fn(function* () {
 			const result = yield* Position.make(1.5, 2).pipe(Effect.exit)
@@ -131,8 +131,82 @@ describe("Position", () => {
 			const origin = new Position({ x: 0, y: 0 })
 			const target = new Position({ x: 6, y: 0 })
 			const moved = origin.towards(target, 1)
-
+			const movedTwice = origin.towards(target, 2)
 			expect(moved.equals(new Position({ x: 1, y: 0 }))).toBe(true)
+			expect(movedTwice.equals(new Position({ x: 2, y: 0 }))).toBe(true)
+		}),
+	)
+
+	it.effect(
+		"should clone independently",
+		Effect.fn(function* () {
+			const a = new Position({ x: 3, y: 7 })
+			const b = a.clone()
+
+			expect(a.equals(b)).toBe(true)
+			b.x = 99
+			expect(a.x).toBe(3)
+		}),
+	)
+
+	it.effect(
+		"should compute distanceTo",
+		Effect.fn(function* () {
+			const a = new Position({ x: 0, y: 0 })
+			const b = new Position({ x: 3, y: 4 })
+
+			expect(a.distanceTo(b)).toBe(5)
+			expect(b.distanceTo(a)).toBe(5)
+		}),
+	)
+
+	it.effect(
+		"should have correct direction constants",
+		Effect.fn(function* () {
+			expect(Position.UP.equals(new Position({ x: 0, y: 1 }))).toBe(true)
+			expect(Position.DOWN.equals(new Position({ x: 0, y: -1 }))).toBe(true)
+			expect(Position.LEFT.equals(new Position({ x: -1, y: 0 }))).toBe(true)
+			expect(Position.RIGHT.equals(new Position({ x: 1, y: 0 }))).toBe(true)
+		}),
+	)
+
+	it.effect(
+		"should round when dividing unevenly",
+		Effect.fn(function* () {
+			const a = new Position({ x: 5, y: 3 })
+
+			expect(a.divide(2).equals(new Position({ x: 3, y: 2 }))).toBe(true)
+		}),
+	)
+
+	it.effect(
+		"should round when multiplying by a fraction",
+		Effect.fn(function* () {
+			const a = new Position({ x: 3, y: 5 })
+
+			expect(a.multiply(0.5).equals(new Position({ x: 2, y: 3 }))).toBe(true)
+		}),
+	)
+
+	it.effect(
+		"should scale a diagonal vector",
+		Effect.fn(function* () {
+			const a = new Position({ x: 3, y: 4 })
+			const scaled = a.scale(5)
+
+			// divide by length 5 rounds to (1,1), then multiply by 5 gives (5,5)
+			expect(scaled.equals(new Position({ x: 5, y: 5 }))).toBe(true)
+		}),
+	)
+
+	it.effect(
+		"should move towards a diagonal target",
+		Effect.fn(function* () {
+			const origin = new Position({ x: 0, y: 0 })
+			const target = new Position({ x: 3, y: 4 })
+			const moved = origin.towards(target, 1)
+
+			expect(moved.equals(new Position({ x: 1, y: 1 }))).toBe(true)
 		}),
 	)
 })
