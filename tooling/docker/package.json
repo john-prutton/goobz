@@ -1,0 +1,6 @@
+{
+	"name": "@repo/docker",
+	"scripts": {
+		"dev": "docker compose --profile dev up --menu=false"
+	}
+}

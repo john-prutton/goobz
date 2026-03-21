@@ -1,7 +1,7 @@
 {
 	"name": "goobz",
 	"scripts": {
-		"dev": "turbo run dev",
+		"dev": "dotenv -e .env.dev -- turbo run dev",
 		"build": "turbo run build",
 		"test": "turbo run test",
 		"clean": "turbo run clean",
