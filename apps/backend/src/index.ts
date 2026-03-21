@@ -1,20 +1,31 @@
-import * as Effect from "effect/Effect"
-import * as Exit from "effect/Exit"
-import * as Layer from "effect/Layer"
-import * as EffectNode from "@effect/platform-node"
+import { Layer } from "effect"
+import { HttpRouter } from "effect/unstable/http"
+import { HttpApiBuilder } from "effect/unstable/httpapi"
+import {
+	NodeHttpClient,
+	NodeHttpPlatform,
+	NodeHttpServer,
+	NodeRuntime,
+} from "@effect/platform-node"
 
-import { Database } from "@repo/domain/database/index.js"
+import { createServer } from "node:http"
 
-import { DatabaseLive } from "@repo/database/index.js"
+import { DomainApi } from "@repo/domain/api/index.js"
 
-const dependencies = Layer.provide(DatabaseLive, EffectNode.NodeServices.layer)
+import { HealthApiGroupLive } from "./api/index.js"
 
-const program = Effect.gen(function* () {
-	const db = yield* Database
-	const game = yield* db.games.create().pipe(Effect.exit)
+const DomainApiLive = HttpApiBuilder.layer(DomainApi).pipe(
+	Layer.provide(HealthApiGroupLive),
+)
 
-	if (Exit.isSuccess(game)) yield* Effect.log("works", game.value)
-	else yield* Effect.logError("Not working", game.cause)
-}).pipe(Effect.provide(dependencies))
+const HttpServer = NodeHttpServer.layer(createServer, { port: 3001 })
 
-program.pipe(EffectNode.NodeRuntime.runMain)
+const RouterLive = HttpRouter.serve(DomainApiLive).pipe(
+	Layer.provide(HttpServer),
+	Layer.provide(NodeHttpPlatform.layer),
+	Layer.provide(NodeHttpClient.layerUndici),
+	Layer.orDie,
+	Layer.launch,
+)
+
+NodeRuntime.runMain(RouterLive)
