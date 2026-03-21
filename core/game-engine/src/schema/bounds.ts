@@ -12,10 +12,10 @@ export class Bounds extends Schema.Class<Bounds>("Bounds")({
 
 	public isInside(position: Position) {
 		return (
-			0 < position.x &&
-			position.x <= this.width &&
-			0 < position.y &&
-			position.y <= this.height
+			0 <= position.x &&
+			position.x < this.width &&
+			0 <= position.y &&
+			position.y < this.height
 		)
 	}
 }
