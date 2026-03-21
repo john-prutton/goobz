@@ -1,10 +1,13 @@
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
 import * as Ref from "effect/Ref"
+import * as Schema from "effect/Schema"
 import * as ServiceMap from "effect/ServiceMap"
 
 import { Goob, type GoobClass } from "@/entities/goob.js"
-import type { GoobData } from "@/types/goob-data.js"
+import { EntityId } from "@/schema/entity-id.js"
+import { GoobData } from "@/schema/goob-data.js"
+import { Position } from "@/schema/position.js"
 
 export class GameState extends ServiceMap.Service<
 	GameState,
@@ -30,9 +33,14 @@ export const GameStateLive = Layer.effect(
 	GameState,
 	Effect.gen(function* () {
 		let tick = yield* Ref.make(0)
-		const goobs = yield* Ref.make<Map<GoobData["id"], GoobData>>(
-			new Map([[0, { id: 0, position: { x: 0 } }]]),
-		)
+		const goobs = yield* Ref.make<Map<GoobData["id"], GoobData>>(new Map())
+
+		const goob = yield* Schema.decodeEffect(GoobData)({
+			id: EntityId.makeUnsafe(0),
+			position: new Position({ x: 0, y: 0 }),
+		})
+
+		goobs.ref.current.set(goob.id, goob)
 
 		return {
 			tick: {
