@@ -5,16 +5,18 @@ import type { GameSchema } from "@/schema/game.js"
 
 import type { DatabaseError } from "./errors.js"
 
-type DatabaseQuery<T> = Effect.Effect<T, DatabaseError>
+type DatabaseQuery<TIn, TOut> = (
+	input: TIn,
+) => Effect.Effect<TOut, DatabaseError>
 
 export class Database extends ServiceMap.Service<
 	Database,
 	{
-		readonly healthCheck: () => DatabaseQuery<true>
+		readonly healthCheck: DatabaseQuery<void, true>
 
 		readonly games: {
-			readonly get: () => DatabaseQuery<GameSchema[]>
-			readonly create: () => DatabaseQuery<GameSchema>
+			readonly get: DatabaseQuery<void, GameSchema[]>
+			readonly create: DatabaseQuery<void, GameSchema>
 		}
 	}
 >()("Database") {}
