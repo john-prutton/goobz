@@ -20,11 +20,10 @@ export const RunGame = ({ playerNames }: { playerNames: string[] }) =>
 			}
 
 			yield* DrawMap
-
 			yield* gameState.tick.next
 		}).pipe(
 			Effect.repeat({
-				schedule: Schedule.fixed("2 seconds"),
+				schedule: Schedule.fixed("500 millis"),
 				while: () => true,
 			}),
 		)

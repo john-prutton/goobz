@@ -3,10 +3,12 @@ import * as Layer from "effect/Layer"
 import * as LayerMap from "effect/LayerMap"
 import * as ServiceMap from "effect/ServiceMap"
 
+import type { GameState } from "./game-state.js"
+
 export class Player extends ServiceMap.Service<
 	Player,
 	{
-		tick: Effect.Effect<void>
+		tick: Effect.Effect<void, never, GameState>
 	}
 >()("Player") {}
 

@@ -1,14 +1,20 @@
 import * as Effect from "effect/Effect"
 import * as Layer from "effect/Layer"
 
+import { EntityId } from "@/schema/entity-id.js"
 import { Position } from "@/schema/position.js"
 import { GameState } from "@/services/game-state.js"
 import { Player } from "@/services/player.js"
+
+const CaptureError = <A, E, D>(effect: Effect.Effect<A, E, D>) =>
+	effect.pipe(Effect.catch((e) => Effect.succeed(e)))
 
 export default Layer.effect(
 	Player,
 	Effect.gen(function* () {
 		const gameState = yield* GameState
+
+		let dir = Position.RIGHT
 
 		return {
 			tick: Effect.gen(function* () {
@@ -16,21 +22,16 @@ export default Layer.effect(
 				yield* Effect.log("goobs", goobs.length)
 
 				for (const goob of goobs) {
-					const target = yield* Position.make(0, 0).pipe(
-						Effect.catchTag("SchemaError", (e) => Effect.die(e)),
-					)
+					if (goob.data.id !== EntityId.makeUnsafe(0)) continue
 
-					yield* goob
-						.moveTo(target)
-						.pipe(
-							Effect.catchTag("MoveError", () =>
-								Effect.log(`failed to move goob ${goob.data.id}`),
-							),
-						)
+					const move = yield* goob
+						.moveTo(goob.data.position.plus(dir))
+						.pipe(CaptureError)
 
-					yield* Effect.log(goob.data.position.x)
+					if (move !== true && move.type === "Position occupied")
+						dir = Position.UP
 				}
-			}).pipe(Effect.catch(() => Effect.void)),
+			}),
 		}
 	}),
 )

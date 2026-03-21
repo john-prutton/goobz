@@ -25,7 +25,7 @@ export class GameState extends ServiceMap.Service<
 
 		readonly _: {
 			readonly entities: {
-				readonly goobs: Ref.Ref<Map<GoobData["id"], GoobData>>
+				readonly goobs: Effect.Effect<Map<GoobData["id"], GoobData>>
 			}
 		}
 	}
@@ -42,8 +42,13 @@ export const GameStateLive = Layer.effect(
 			id: EntityId.makeUnsafe(0),
 			position: new Position({ x: 0, y: 0 }),
 		})
-
 		goobs.ref.current.set(goob.id, goob)
+
+		const goob2 = yield* Schema.decodeEffect(GoobData)({
+			id: EntityId.makeUnsafe(1),
+			position: new Position({ x: 4, y: 0 }),
+		})
+		goobs.ref.current.set(goob2.id, goob2)
 
 		return {
 			tick: {
@@ -61,7 +66,7 @@ export const GameStateLive = Layer.effect(
 
 			_: {
 				entities: {
-					goobs,
+					goobs: Ref.get(goobs),
 				},
 			},
 		}

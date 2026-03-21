@@ -8,10 +8,9 @@ export const DrawMap = Effect.gen(function* () {
 
 	const { height, width } = gameState.map.bounds
 	const goobs = new Set(
-		gameState._.entities.goobs.ref.current
+		(yield* gameState._.entities.goobs)
 			.values()
-			.map((goob) => goob.position.toString())
-			.toArray(),
+			.map((goob) => goob.position.toString()),
 	)
 
 	const board: string[] = ["\n"]
