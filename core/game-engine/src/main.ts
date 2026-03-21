@@ -3,6 +3,7 @@ import * as Layer from "effect/Layer"
 import * as Schedule from "effect/Schedule"
 import * as ServiceMap from "effect/ServiceMap"
 
+import { DrawMap } from "./debug/draw-map.js"
 import { GameState } from "./services/game-state.js"
 import { Player, PlayerMap } from "./services/player.js"
 
@@ -18,10 +19,12 @@ export const RunGame = ({ playerNames }: { playerNames: string[] }) =>
 				yield* player.tick
 			}
 
+			yield* DrawMap
+
 			yield* gameState.tick.next
 		}).pipe(
 			Effect.repeat({
-				schedule: Schedule.fixed("500 millis"),
+				schedule: Schedule.fixed("2 seconds"),
 				while: () => true,
 			}),
 		)
