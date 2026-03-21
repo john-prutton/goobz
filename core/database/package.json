@@ -1,0 +1,38 @@
+{
+	"name": "@repo/database",
+	"type": "module",
+	"scripts": {
+		"dev": "nodemon --watch src --ext ts --exec pnpm dep-watcher bash -c \"clear && pnpm clean && pnpm build && pnpm copy-migrations\"",
+		"build": "pnpm tsc && pnpm tsc-alias",
+		"test": "vitest run || true",
+		"clean": "rm -rf dist/*",
+		"lint": "eslint",
+		"copy-migrations": "mkdir -p ./dist/migrations && cp ./migrations/*.sql ./dist/migrations",
+		"db:generate": "drizzle-kit generate"
+	},
+	"exports": {
+		"./*.js": {
+			"import": "./dist/*.js",
+			"types": "./dist/*.d.ts"
+		},
+		"./*": {
+			"import": "./dist/*/index.js",
+			"types": "./dist/*/index.d.ts"
+		}
+	},
+	"devDependencies": {
+		"@repo/dep-watcher": "workspace:^",
+		"@repo/eslint": "workspace:^",
+		"@repo/typescript": "workspace:^",
+		"@repo/vitest": "workspace:^",
+		"@types/pg": "^8.20.0",
+		"drizzle-kit": "^0.31.10"
+	},
+	"dependencies": {
+		"@effect/sql-pg": "4.0.0-beta.35",
+		"@repo/domain": "workspace:^",
+		"drizzle-orm": "^0.45.1",
+		"effect": "4.0.0-beta.35",
+		"pg": "^8.20.0"
+	}
+}

@@ -1,12 +1,12 @@
 {
 	"$schema": "https://turbo.build/schema.json",
 	"ui": "tui",
-	"globalEnv": ["FOOD_INV_*"],
+	"globalEnv": ["GOOBZ_*"],
 	"tasks": {
 		"dev": {
 			"persistent": true,
 			"cache": false,
-			"passThroughEnv": ["FOOD_INV_*"]
+			"passThroughEnv": ["GOOBZ_*"]
 		},
 		"build": {
 			"dependsOn": ["^build"],
