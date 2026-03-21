@@ -51,6 +51,28 @@ importers:
         specifier: ^4.0.18
         version: 4.0.18(@types/node@24.10.13)(jiti@2.6.1)(jsdom@27.4.0(@noble/hashes@1.8.0))(lightningcss@1.31.1)(msw@2.12.10(@types/node@24.10.13)(typescript@5.9.3))(tsx@4.21.0)(yaml@2.8.2)
 
+  core/database:
+    dependencies:
+      '@repo/domain':
+        specifier: workspace:^
+        version: link:../../domain
+      effect:
+        specifier: 4.0.0-beta.35
+        version: 4.0.0-beta.35
+    devDependencies:
+      '@repo/dep-watcher':
+        specifier: workspace:^
+        version: link:../../tooling/dep-watcher
+      '@repo/eslint':
+        specifier: workspace:^
+        version: link:../../tooling/eslint
+      '@repo/typescript':
+        specifier: workspace:^
+        version: link:../../tooling/typescript
+      '@repo/vitest':
+        specifier: workspace:^
+        version: link:../../tooling/vitest
+
   core/game-engine:
     dependencies:
       '@repo/domain':
@@ -60,6 +82,9 @@ importers:
         specifier: 4.0.0-beta.35
         version: 4.0.0-beta.35
     devDependencies:
+      '@repo/dep-watcher':
+        specifier: workspace:^
+        version: link:../../tooling/dep-watcher
       '@repo/eslint':
         specifier: workspace:^
         version: link:../../tooling/eslint
