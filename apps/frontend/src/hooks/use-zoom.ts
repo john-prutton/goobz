@@ -9,7 +9,7 @@ export function useZoom() {
 
 		const handleZoom = (ev: WheelEvent) => {
 			let z = zoom
-			if (ev.deltaY > 0) {
+			if (ev.deltaY < 0) {
 				z += 0.1
 			} else {
 				z -= 0.1
